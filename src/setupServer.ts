@@ -11,9 +11,9 @@ import { config } from './config';
 import { Server } from 'socket.io';
 import { createClient } from 'redis';
 import { createAdapter } from '@socket.io/redis-adapter';
-import applicationRoutes from './routes';
-import { CustomError, IErrorResponse } from './shared/globals/helpers/error-handler';
+import applicationRoutes from '@root/routes';
 import Logger from 'bunyan';
+import { CustomError, IErrorResponse } from '@global/helpers/error-handler';
 
 const log: Logger = config.createLogger('server');
 
@@ -27,31 +27,38 @@ export class ChattyServer {
   public start(): void {
     this.securityMidddleware(this.app);
     this.standardMiddleware(this.app);
-    this.globalErrorHandler(this.app);
     this.routeMiddleware(this.app);
+    this.globalErrorHandler(this.app);
     this.startServer(this.app);
   }
+
   private securityMidddleware(app: Application): void {
+    app.set('trust proxy', 1);
     app.use(
       cookieSession({
         name: 'session',
         keys: [config.SECRET_KEY_ONE!, config.SECRET_KEY_TWO!],
-        maxAge: 24 * 7 * 36000000,
+        maxAge: 24 * 7 * 3600000,
         secure: config.NODE_ENV !== 'development'
+        // secure: true //    if using https
+
+        // sameSite: 'none' // comment this line when running the server locally
       })
     );
     app.use(hpp());
     app.use(helmet());
     app.use(
       cors({
-        origin: '*',
+        origin: config.CLIENT_URL,
+        // origin: '*',
+        // origin: 'https://dev.chatapp.com',
         credentials: true,
+        //  credentials: false,  if false not work cookie
         optionsSuccessStatus: 200,
-        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIOS']
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
       })
     );
   }
-
   private standardMiddleware(app: Application): void {
     app.use(compression());
     app.use(json({ limit: '50mb' }));
@@ -107,5 +114,5 @@ export class ChattyServer {
       log.info(`Server running on port ${SERVER_PORT}`);
     });
   }
-  private socketIOConnections(io: Server): void {}
+  // private socketIOConnections(io: Server): void {}
 }

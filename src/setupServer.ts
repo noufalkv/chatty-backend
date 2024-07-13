@@ -8,12 +8,20 @@ import cookieSession from 'cookie-session';
 import 'express-async-errors';
 import HTTP_STATUS from 'http-status-codes';
 import { config } from './config';
-import { Server } from 'socket.io';
-import { createClient } from 'redis';
-import { createAdapter } from '@socket.io/redis-adapter';
 import Logger from 'bunyan';
 import { CustomError, IErrorResponse } from '@global/helpers/error-handler';
 import applicationRoutes from '@root/routes';
+// SocketIO
+import { Server } from 'socket.io';
+import { createClient } from 'redis';
+import { createAdapter } from '@socket.io/redis-adapter';
+//SocketIO Listener
+// import { SocketIOPostHandler } from '@socket/post';
+// import { SocketIOFollowerHandler } from '@socket/follower';
+// import { SocketIOUserHandler } from '@socket/user';
+// import { SocketIONotificationHandler } from '@socket/notification';
+// import { SocketIOImageHandler } from '@socket/image';
+// import { SocketIOChatHandler } from '@socket/chat';
 
 const log: Logger = config.createLogger('server');
 
@@ -86,9 +94,9 @@ export class ChattyServer {
   private async startServer(app: Application): Promise<void> {
     try {
       const httpServer: http.Server = new http.Server(app);
-      // const socketIO: Server = await this.createSocketIO(httpServer);
+      const socketIO: Server = await this.createSocketIO(httpServer);
       this.startHttpServer(httpServer);
-      // this.socketIOConnections(socketIO);
+      this.socketIOConnections(socketIO);
     } catch (error) {
       log.error(error);
     }
@@ -114,5 +122,8 @@ export class ChattyServer {
       log.info(`Server running on port ${SERVER_PORT}`);
     });
   }
-  // private socketIOConnections(io: Server): void {}
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  private socketIOConnections(io: Server): void {
+    log.info('SocketIOConnections');
+  }
 }

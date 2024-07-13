@@ -24,9 +24,29 @@ withCredentials: true
 
 {
   "username": "111111",
-  "password": "111111"
+  "password": "222222"
 }
 
+###
+POST {{baseUrl}}/{{urlPath}}/forgot-password
+Content-Type: application/json
+Accept: application/json
+withCredentials: true
+
+{
+  "email": "111111@gmail.com"
+}
+
+###
+POST {{baseUrl}}/{{urlPath}}/reset-password/d8028174f2d5fff9bcc89d6846507a62a8a6f5d6
+Content-Type: application/json
+Accept: application/json
+withCredentials: true
+
+{
+  "password": "222222",
+  "confirmPassword": "222222"
+}
 ###
 POST {{baseUrl}}/{{urlPath}}/signup
 Content-Type: application/json

@@ -10,7 +10,7 @@ import { loginSchema } from '@auth/schemes/signin';
 import { IAuthDocument } from '@auth/interfaces/auth.interface';
 import { BadRequestError } from '@global/helpers/error-handler';
 import { userService } from '@service/db/user.service';
-import {  IUserDocument } from '@user/interfaces/user.interface';
+import { IUserDocument } from '@user/interfaces/user.interface';
 // import { mailTransport } from '@service/emails/mail.transport';
 export class SignIn {
   @joiValidation(loginSchema)
@@ -47,9 +47,7 @@ export class SignIn {
       createdAt: existingUser!.createdAt
     } as IUserDocument;
 
-
     // await mailTransport.sendEmail('sid.padberg@ethereal.email', 'Testing dev email', 'This is  testing email');
-
 
     //forgot Password
     // const resetLink = `${config.CLIENT_URL}/reset-password?token=12121212121`;
@@ -59,7 +57,6 @@ export class SignIn {
     //   receiverEmail: 'sid.padberg@ethereal.email',
     //   subject: 'Reset your password'
     // });
-
 
     //Reset Password
     // const templateParams: IResetPasswordParams = {

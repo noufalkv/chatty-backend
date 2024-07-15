@@ -27,7 +27,9 @@ export class Add {
       'profilePicture',
       url
     )) as IUserDocument;
-    socketIOImageObject.emit('update user', cachedUser);
+    // socketIOImageObject.emit('update user', cachedUser);
+    console.log(cachedUser);
+
     imageQueue.addImageJob('addUserProfileImageToDB', {
       key: `${req.currentUser!.userId}`,
       value: url,
@@ -51,11 +53,11 @@ export class Add {
       version
     ) as Promise<IUserDocument>;
     const response: [IUserDocument, IUserDocument] = (await Promise.all([bgImageId, bgImageVersion])) as [IUserDocument, IUserDocument];
-    socketIOImageObject.emit('update user', {
-      bgImageId: publicId,
-      bgImageVersion: version,
-      userId: response[0]
-    });
+    // socketIOImageObject.emit('update user', {
+    //   bgImageId: publicId,
+    //   bgImageVersion: version,
+    //   userId: response[0]
+    // });
     imageQueue.addImageJob('updateBGImageInDB', {
       key: `${req.currentUser!.userId}`,
       imgId: publicId,

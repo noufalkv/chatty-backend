@@ -34,6 +34,7 @@ export class Add {
       isRead,
       selectedImage
     } = req.body;
+
     let fileUrl = '';
     const messageObjectId: ObjectId = new ObjectId();
     const conversationObjectId: ObjectId = !conversationId ? new ObjectId() : new mongoose.Types.ObjectId(conversationId);
@@ -41,7 +42,7 @@ export class Add {
     const sender: IUserDocument = (await userCache.getUserFromCache(`${req.currentUser!.userId}`)) as IUserDocument;
 
     if (selectedImage.length) {
-      const result: UploadApiResponse = (await uploads(req.body.image, req.currentUser!.userId, true, true)) as UploadApiResponse;
+      const result: UploadApiResponse = (await uploads(selectedImage, req.currentUser!.userId, true, true)) as UploadApiResponse;
       if (!result?.public_id) {
         throw new BadRequestError(result.message);
       }
@@ -90,19 +91,19 @@ export class Add {
 
   public async addChatUsers(req: Request, res: Response): Promise<void> {
     const chatUsers = await messageCache.addChatUsersToCache(req.body);
-    // socketIOChatObject.emit('add chat users', chatUsers);
+    socketIOChatObject.emit('add chat users', chatUsers);
     res.status(HTTP_STATUS.OK).json({ message: 'Users added' });
   }
 
   public async removeChatUsers(req: Request, res: Response): Promise<void> {
     const chatUsers = await messageCache.removeChatUsersFromCache(req.body);
-    // socketIOChatObject.emit('add chat users', chatUsers);
+    socketIOChatObject.emit('add chat users', chatUsers);
     res.status(HTTP_STATUS.OK).json({ message: 'Users removed' });
   }
 
   private emitSocketIOEvent(data: IMessageData): void {
-    // socketIOChatObject.emit('message received', data);
-    // socketIOChatObject.emit('chat list', data);
+    socketIOChatObject.emit('message received', data);
+    socketIOChatObject.emit('chat list', data);
   }
 
   private async messageNotification({ currentUser, message, receiverName, receiverId }: IMessageNotification): Promise<void> {

@@ -39,7 +39,7 @@ export class Create {
       createdAt: new Date(),
       reactions: { like: 0, love: 0, happy: 0, sad: 0, wow: 0, angry: 0 }
     } as IPostDocument;
-    // socketIOPostObject.emit('add post', createdPost);
+    socketIOPostObject.emit('add post', createdPost);
     await postCache.savePostToCache({
       key: postObjectId,
       currentUserId: `${req.currentUser!.userId}`,
@@ -80,7 +80,8 @@ export class Create {
       createdAt: new Date(),
       reactions: { like: 0, love: 0, happy: 0, sad: 0, wow: 0, angry: 0 }
     } as IPostDocument;
-    // socketIOPostObject.emit('add post', createdPost);
+
+    socketIOPostObject.emit('add post', createdPost);
     await postCache.savePostToCache({
       key: postObjectId,
       currentUserId: `${req.currentUser!.userId}`,
@@ -126,7 +127,7 @@ export class Create {
       createdAt: new Date(),
       reactions: { like: 0, love: 0, happy: 0, sad: 0, wow: 0, angry: 0 }
     } as IPostDocument;
-    // socketIOPostObject.emit('add post', createdPost);
+    socketIOPostObject.emit('add post', createdPost);
     await postCache.savePostToCache({
       key: postObjectId,
       currentUserId: `${req.currentUser!.userId}`,

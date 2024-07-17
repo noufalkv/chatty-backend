@@ -29,7 +29,7 @@ export class Password {
 
     const resetLink = `${config.CLIENT_URL}/reset-password?token=${randomCharacters}`;
     const template: string = forgotPasswordTemplate.passwordResetTemplate(existingUser.username!, resetLink);
-    // emailQueue.addEmailJob('forgotPasswordEmail', { template, receiverEmail: email, subject: 'Reset your password' });
+    emailQueue.addEmailJob('forgotPasswordEmail', { template, receiverEmail: email, subject: 'Reset your password' });
     emailQueue.addEmailJob('forgotPasswordEmail', {
       template,
       receiverEmail: 'sid.padberg@ethereal.email',
@@ -62,7 +62,7 @@ export class Password {
       date: moment().format('DD//MM//YYYY HH:mm')
     };
     const template: string = resetPasswordTemplate.passwordResetConfirmationTemplate(templateParams);
-    // emailQueue.addEmailJob('forgotPasswordEmail', { template, receiverEmail: existingUser.email!, subject: 'Password Reset Confirmation' });
+    emailQueue.addEmailJob('forgotPasswordEmail', { template, receiverEmail: existingUser.email!, subject: 'Password Reset Confirmation' });
     emailQueue.addEmailJob('forgotPasswordEmail', {
       template,
       receiverEmail: 'sid.padberg@ethereal.email',

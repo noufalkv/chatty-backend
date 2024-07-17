@@ -32,7 +32,7 @@ export class Update {
     } as IPostDocument;
 
     const postUpdated: IPostDocument = await postCache.updatePostInCache(postId, updatedPost);
-    // socketIOPostObject.emit('update post', postUpdated, 'posts');
+    socketIOPostObject.emit('update post', postUpdated, 'posts');
     postQueue.addPostJob('updatePostInDB', { key: postId, value: postUpdated });
     res.status(HTTP_STATUS.OK).json({ message: 'Post updated successfully' });
   }
@@ -82,7 +82,7 @@ export class Update {
     } as IPostDocument;
 
     const postUpdated: IPostDocument = await postCache.updatePostInCache(postId, updatedPost);
-    // socketIOPostObject.emit('update post', postUpdated, 'posts');
+    socketIOPostObject.emit('update post', postUpdated, 'posts');
     postQueue.addPostJob('updatePostInDB', { key: postId, value: postUpdated });
   }
 
@@ -109,7 +109,7 @@ export class Update {
     } as IPostDocument;
 
     const postUpdated: IPostDocument = await postCache.updatePostInCache(postId, updatedPost);
-    // socketIOPostObject.emit('update post', postUpdated, 'posts');
+    socketIOPostObject.emit('update post', postUpdated, 'posts');
     postQueue.addPostJob('updatePostInDB', { key: postId, value: postUpdated });
     if (image) {
       imageQueue.addImageJob('addImageToDB', {

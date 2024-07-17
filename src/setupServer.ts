@@ -16,12 +16,12 @@ import { Server } from 'socket.io';
 import { createClient } from 'redis';
 import { createAdapter } from '@socket.io/redis-adapter';
 //SocketIO Listener
-// import { SocketIOPostHandler } from '@socket/post';
-// import { SocketIOFollowerHandler } from '@socket/follower';
-// import { SocketIOUserHandler } from '@socket/user';
-// import { SocketIONotificationHandler } from '@socket/notification';
-// import { SocketIOImageHandler } from '@socket/image';
-// import { SocketIOChatHandler } from '@socket/chat';
+import { SocketIOPostHandler } from '@socket/post';
+import { SocketIOFollowerHandler } from '@socket/follower';
+import { SocketIOUserHandler } from '@socket/user';
+import { SocketIONotificationHandler } from '@socket/notification';
+import { SocketIOImageHandler } from '@socket/image';
+import { SocketIOChatHandler } from '@socket/chat';
 
 const log: Logger = config.createLogger('server');
 
@@ -126,8 +126,19 @@ export class ChattyServer {
       log.info(`Server running on port ${SERVER_PORT}`);
     });
   }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private socketIOConnections(io: Server): void {
-    log.info('SocketIOConnections');
+    const postSocketHandler: SocketIOPostHandler = new SocketIOPostHandler(io);
+    const followerSocketHandler: SocketIOFollowerHandler = new SocketIOFollowerHandler(io);
+    const userSocketHandler: SocketIOUserHandler = new SocketIOUserHandler(io);
+    const chatSocketHandler: SocketIOChatHandler = new SocketIOChatHandler(io);
+    const notificationSocketHandler: SocketIONotificationHandler = new SocketIONotificationHandler();
+    const imageSocketHandler: SocketIOImageHandler = new SocketIOImageHandler();
+
+    postSocketHandler.listen();
+    followerSocketHandler.listen();
+    userSocketHandler.listen();
+    chatSocketHandler.listen();
+    notificationSocketHandler.listen(io);
+    imageSocketHandler.listen(io);
   }
 }

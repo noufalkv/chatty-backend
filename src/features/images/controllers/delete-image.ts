@@ -12,7 +12,7 @@ const userCache: UserCache = new UserCache();
 export class Delete {
   public async image(req: Request, res: Response): Promise<void> {
     const { imageId } = req.params;
-    // socketIOImageObject.emit('delete image', imageId);
+    socketIOImageObject.emit('delete image', imageId);
     imageQueue.addImageJob('removeImageFromDB', {
       imageId
     });
@@ -21,7 +21,7 @@ export class Delete {
 
   public async backgroundImage(req: Request, res: Response): Promise<void> {
     const image: IFileImageDocument = await imageService.getImageByBackgroundId(req.params.bgImageId);
-    // socketIOImageObject.emit('delete image', image?._id);
+    socketIOImageObject.emit('delete image', image?._id);
     const bgImageId: Promise<IUserDocument> = userCache.updateSingleUserItemInCache(
       `${req.currentUser!.userId}`,
       'bgImageId',

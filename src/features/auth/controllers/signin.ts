@@ -1,5 +1,3 @@
-// import { emailQueue } from './../../../shared/services/queues/email.queue';
-// import { forgotPasswordTemplate } from './../../../shared/services/emails/templates/forgot-password/forgot-password-template';
 import { Request, Response } from 'express';
 import { config } from '@root/config';
 import JWT from 'jsonwebtoken';
@@ -11,7 +9,6 @@ import { IAuthDocument } from '@auth/interfaces/auth.interface';
 import { BadRequestError } from '@global/helpers/error-handler';
 import { userService } from '@service/db/user.service';
 import { IUserDocument } from '@user/interfaces/user.interface';
-// import { mailTransport } from '@service/emails/mail.transport';
 export class SignIn {
   @joiValidation(loginSchema)
   public async read(req: Request, res: Response): Promise<void> {
@@ -46,31 +43,6 @@ export class SignIn {
       uId: existingUser!.uId,
       createdAt: existingUser!.createdAt
     } as IUserDocument;
-
-    // await mailTransport.sendEmail('sid.padberg@ethereal.email', 'Testing dev email', 'This is  testing email');
-
-    //forgot Password
-    // const resetLink = `${config.CLIENT_URL}/reset-password?token=12121212121`;
-    // const template: string = forgotPasswordTemplate.passwordResetTemplate(existingUser.username, resetLink);
-    // emailQueue.addEmailJob('forgotPasswordEmail', {
-    //   template,
-    //   receiverEmail: 'sid.padberg@ethereal.email',
-    //   subject: 'Reset your password'
-    // });
-
-    //Reset Password
-    // const templateParams: IResetPasswordParams = {
-    //    username : existingUser.username,
-    //    email: existingUser.email,
-    //    ipaddress:publicIP.address(),
-    //    date: moment().format('DD/MM/YYYY HH:mm')
-    // };
-    //  const template: string = resetPasswordTemplate.passwordResetConfirmationTemplate(templateParams);
-    // emailQueue.addEmailJob('forgotPasswordEmail', {
-    //   template,
-    //   receiverEmail: 'sid.padberg@ethereal.email',
-    //   subject: 'Password reset confirmation'
-    // });
     res.status(HTTP_STATUS.OK).json({ message: 'User login successfully', user: userDocument, token: userJwt });
   }
 }

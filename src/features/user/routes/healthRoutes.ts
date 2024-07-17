@@ -32,7 +32,7 @@ class HealthRoutes {
     this.router.get('/instance', async (req: Request, res: Response) => {
       const response = await axios({
         method: 'get',
-        url: config.EC2_URL
+        // url: config.EC2_URL
       });
       res
         .status(HTTP_STATUS.OK)
@@ -50,7 +50,7 @@ class HealthRoutes {
       const end: number = performance.now();
       const response = await axios({
         method: 'get',
-        url: config.EC2_URL
+        // url: config.EC2_URL
       });
       res
         .status(HTTP_STATUS.OK)

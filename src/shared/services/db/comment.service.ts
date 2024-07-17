@@ -7,7 +7,7 @@ import { UserCache } from '@service/redis/user.cache';
 import { IUserDocument } from '@user/interfaces/user.interface';
 import { NotificationModel } from '@notification/models/notification.schema';
 import { INotificationDocument, INotificationTemplate } from '@notification/interfaces/notification.interface';
-// import { socketIONotificationObject } from '@socket/notification';
+import { socketIONotificationObject } from '@socket/notification';
 import { notificationTemplate } from '@service/emails/templates/notifications/notification-template';
 import { emailQueue } from '@service/queues/email.queue';
 
@@ -42,7 +42,7 @@ class CommentService {
         gifUrl: response[1].gifUrl!,
         reaction: ''
       });
-      // socketIONotificationObject.emit('insert notification', notifications, { userTo });
+      socketIONotificationObject.emit('insert notification', notifications, { userTo });
       const templateParams: INotificationTemplate = {
         username: response[2].username!,
         message: `${username} commented on your post.`,

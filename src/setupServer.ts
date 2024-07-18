@@ -11,6 +11,8 @@ import { config } from './config';
 import Logger from 'bunyan';
 import { CustomError, IErrorResponse } from '@global/helpers/error-handler';
 import applicationRoutes from '@root/routes';
+import apiStats from 'swagger-stats';
+
 // SocketIO
 import { Server } from 'socket.io';
 import { createClient } from 'redis';
@@ -36,6 +38,7 @@ export class ChattyServer {
     this.securityMidddleware(this.app);
     this.standardMiddleware(this.app);
     this.routeMiddleware(this.app);
+    this.apiMonitoring(this.app);
     this.globalErrorHandler(this.app);
     this.startServer(this.app);
   }
@@ -104,7 +107,13 @@ export class ChattyServer {
       log.error(error);
     }
   }
-
+  private apiMonitoring(app: Application): void {
+    app.use(
+      apiStats.getMiddleware({
+        uriPath: '/api-monitoring'
+      })
+    );
+  }
   private async createSocketIO(httpServer: http.Server): Promise<Server> {
     const io: Server = new Server(httpServer, {
       cors: {

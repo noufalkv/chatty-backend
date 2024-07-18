@@ -4,7 +4,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon ./build/src/app.js",
+    "start": "NODE_ENV=production pm2 start ./build/src/app.js -i 5 --attach --watch  | ./node_modules/.bin/bunyan",
+    "stop": "pm2 stop all",
+    "delete": "pm2 delete all",
+    "start:dev": "NODE_ENV=production -r tsconfig-paths/register  pm2 start ./build/src/app.js -i 5 --watch  | ./node_modules/.bin/bunyan",
+    "start:dev1": "nodemon ./build/src/app.js",
     "dev": "nodemon -r tsconfig-paths/register src/app.ts | ./node_modules/.bin/bunyan",
     "test": "jest --coverage=true -w=1 --forceExit --detectOpenHandles --watchAll=true",
     "lint:check": "eslint 'src/**/*.ts'",
@@ -47,6 +51,7 @@
     "nodemailer": "^6.9.14",
     "redis": "^4.6.15",
     "socket.io": "^4.7.5",
+    "swagger-stats": "^0.99.7",
     "typescript": "^5.5.3",
     "typescript-transform-paths": "^3.4.7"
   },
@@ -64,6 +69,7 @@
     "@types/lodash": "^4.17.6",
     "@types/nodemailer": "^6.4.15",
     "@types/redis-info": "^3.0.3",
+    "@types/swagger-stats": "^0.95.11",
     "@typescript-eslint/eslint-plugin": "^5.31.0",
     "@typescript-eslint/parser": "^5.31.0",
     "eslint": "^8.20.0",

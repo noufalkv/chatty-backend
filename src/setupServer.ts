@@ -8,12 +8,22 @@ import cookieSession from 'cookie-session';
 import 'express-async-errors';
 import HTTP_STATUS from 'http-status-codes';
 import { config } from './config';
+import Logger from 'bunyan';
+import { CustomError, IErrorResponse } from '@global/helpers/error-handler';
+import applicationRoutes from '@root/routes';
+import apiStats from 'swagger-stats';
+
+// SocketIO
 import { Server } from 'socket.io';
 import { createClient } from 'redis';
 import { createAdapter } from '@socket.io/redis-adapter';
-import applicationRoutes from './routes';
-import { CustomError, IErrorResponse } from './shared/globals/helpers/error-handler';
-import Logger from 'bunyan';
+//SocketIO Listener
+import { SocketIOPostHandler } from '@socket/post';
+import { SocketIOFollowerHandler } from '@socket/follower';
+import { SocketIOUserHandler } from '@socket/user';
+import { SocketIONotificationHandler } from '@socket/notification';
+import { SocketIOImageHandler } from '@socket/image';
+import { SocketIOChatHandler } from '@socket/chat';
 
 const log: Logger = config.createLogger('server');
 
@@ -27,31 +37,39 @@ export class ChattyServer {
   public start(): void {
     this.securityMidddleware(this.app);
     this.standardMiddleware(this.app);
-    this.globalErrorHandler(this.app);
     this.routeMiddleware(this.app);
+    this.apiMonitoring(this.app);
+    this.globalErrorHandler(this.app);
     this.startServer(this.app);
   }
+
   private securityMidddleware(app: Application): void {
+    app.set('trust proxy', 1);
     app.use(
       cookieSession({
         name: 'session',
         keys: [config.SECRET_KEY_ONE!, config.SECRET_KEY_TWO!],
-        maxAge: 24 * 7 * 36000000,
+        maxAge: 24 * 7 * 3600000,
         secure: config.NODE_ENV !== 'development'
+        // secure: true //    if using https
+
+        // sameSite: 'none' // comment this line when running the server locally
       })
     );
     app.use(hpp());
     app.use(helmet());
     app.use(
       cors({
-        origin: '*',
+        origin: config.CLIENT_URL,
+        // origin: '*',
+        // origin: 'https://dev.chatapp.com',
         credentials: true,
+        //  credentials: false,  if false not work cookie
         optionsSuccessStatus: 200,
-        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIOS']
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
       })
     );
   }
-
   private standardMiddleware(app: Application): void {
     app.use(compression());
     app.use(json({ limit: '50mb' }));
@@ -77,6 +95,9 @@ export class ChattyServer {
   }
 
   private async startServer(app: Application): Promise<void> {
+    if (!config.JWT_TOKEN) {
+      throw new Error('JWT_TOKEN must be provided');
+    }
     try {
       const httpServer: http.Server = new http.Server(app);
       const socketIO: Server = await this.createSocketIO(httpServer);
@@ -86,7 +107,13 @@ export class ChattyServer {
       log.error(error);
     }
   }
-
+  private apiMonitoring(app: Application): void {
+    app.use(
+      apiStats.getMiddleware({
+        uriPath: '/api-monitoring'
+      })
+    );
+  }
   private async createSocketIO(httpServer: http.Server): Promise<Server> {
     const io: Server = new Server(httpServer, {
       cors: {
@@ -102,10 +129,25 @@ export class ChattyServer {
   }
 
   private startHttpServer(httpServer: http.Server): void {
+    log.info(`Worker with process id of ${process.pid} has started...`);
     log.info(`Server has started with process ${process.pid}`);
     httpServer.listen(SERVER_PORT, () => {
       log.info(`Server running on port ${SERVER_PORT}`);
     });
   }
-  private socketIOConnections(io: Server): void {}
+  private socketIOConnections(io: Server): void {
+    const postSocketHandler: SocketIOPostHandler = new SocketIOPostHandler(io);
+    const followerSocketHandler: SocketIOFollowerHandler = new SocketIOFollowerHandler(io);
+    const userSocketHandler: SocketIOUserHandler = new SocketIOUserHandler(io);
+    const chatSocketHandler: SocketIOChatHandler = new SocketIOChatHandler(io);
+    const notificationSocketHandler: SocketIONotificationHandler = new SocketIONotificationHandler();
+    const imageSocketHandler: SocketIOImageHandler = new SocketIOImageHandler();
+
+    postSocketHandler.listen();
+    followerSocketHandler.listen();
+    userSocketHandler.listen();
+    chatSocketHandler.listen();
+    notificationSocketHandler.listen(io);
+    imageSocketHandler.listen(io);
+  }
 }

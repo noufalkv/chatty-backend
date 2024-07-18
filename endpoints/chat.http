@@ -1,0 +1,86 @@
+@baseUrl = http://localhost:5000
+@urlPath = api/v1
+
+###
+GET {{baseUrl}}/{{urlPath}}/chat/message/conversation-list
+Content-Type: application/json
+Accept: application/json
+withCredentials: true
+
+###
+GET {{baseUrl}}/{{urlPath}}/chat/message/user/64fd64d63c1bb6ce3183f1b4
+Content-Type: application/json
+Accept: application/json
+withCredentials: true
+
+###
+POST {{baseUrl}}/{{urlPath}}/chat/message
+Content-Type: application/json
+Accept: application/json
+withCredentials: true
+
+{
+  "conversationId": "",
+  "receiverId": "6693758ba1e5db4dbaf22752",
+  "receiverUsername": "111111",
+  "receiverAvatarColor": "#cccccc",
+  "receiverProfilePicture": "<cloudinary-user-profile-picture-url>",
+  "body": "hi",
+  "gifUrl": "",
+  "isRead": false,
+  "selectedImage": ""
+}
+
+###
+POST {{baseUrl}}/{{urlPath}}/chat/message/add-chat-users
+Content-Type: application/json
+Accept: application/json
+withCredentials: true
+
+{
+  "userOne": "6693758ba1e5db4dbaf22752",
+  "userTwo": "669375e9109910d1a7dce40e"
+}
+
+###
+POST {{baseUrl}}/{{urlPath}}/chat/message/remove-chat-users
+Content-Type: application/json
+Accept: application/json
+withCredentials: true
+
+{
+ "userOne": "6693758ba1e5db4dbaf22752",
+  "userTwo": "669375e9109910d1a7dce40e"
+}
+
+###
+PUT {{baseUrl}}/{{urlPath}}/chat/message/mark-as-read
+Content-Type: application/json
+Accept: application/json
+withCredentials: true
+
+{
+  "senderId": "6693758ba1e5db4dbaf22752",
+  "receiverId": "669375e9109910d1a7dce40e"
+}
+
+###
+PUT {{baseUrl}}/{{urlPath}}/chat/message/reaction
+Content-Type: application/json
+Accept: application/json
+withCredentials: true
+
+# For this endpoint, the type is either add or remove
+{
+  "conversationId": "6694e08f2e3e9fd9f686fa30",
+  "messageId": "",
+  "reaction": "",
+  "type": ""
+}
+
+###
+DELETE {{baseUrl}}/{{urlPath}}/chat/message/mark-as-deleted/<messageId>/<senderId>/<receiverId>/<type>
+# For this endpoint, the type is either deleteForMe or deleteForEveryone
+Content-Type: application/json
+Accept: application/json
+withCredentials: true

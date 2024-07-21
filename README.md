@@ -34,8 +34,7 @@ local mongdb connection
 
 mongodb://localhost:27017
 
+AWS gmail
+ noufalkvaws@gmail.com
+ newPass321??
 
-
-sendgrid 
-noufalkv@gmail.com
-newPass321??????

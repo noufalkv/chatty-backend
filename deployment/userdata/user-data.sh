@@ -11,7 +11,7 @@ sudo yum update -y
 sudo yum install ruby -y
 sudo yum install wget -y
 cd /home/ec2-user
-wget https://aws-codedeploy-eu-central-1.s3.eu-central-1.amazonaws.com/latest/install
+wget https://aws-codedeploy-aws-codedeploy-us-east-1.s3.us-east-1.amazonaws.com/latest/install
 sudo chmod +x ./install
 sudo ./install auto
 
@@ -41,11 +41,11 @@ cd /home/ec2-user
 
 git clone -b develop https://github.com/noufalkv/chatty-backend.git # replace this github url with your url of your own project
 cd chatty-backend # set your project name
-npm install
+sudo npm install
 #aws s3 sync s3://<your-s3-bucket>/backend/develop . # update with your s3 bucket
 aws s3 sync s3://chaty-app-env-files/develop . # update with your s3 bucket
 
 unzip env-file.zip
 cp .env.develop .env
-npm run build
-npm run start
+sudo npm run build
+sudo npm run start

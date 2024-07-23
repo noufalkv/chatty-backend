@@ -7,7 +7,7 @@ class BlockUserService {
     UserModel.bulkWrite([
       {
         updateOne: {
-          filter: { _id: userId, blocked: { $ne: new mongoose.Types.ObjectId(followerId) } },
+          filter: {_id: new mongoose.Types.ObjectId(userId), blocked: { $ne: new mongoose.Types.ObjectId(followerId) } },
           update: {
             $push: {
               blocked: new mongoose.Types.ObjectId(followerId)
@@ -17,7 +17,7 @@ class BlockUserService {
       },
       {
         updateOne: {
-          filter: { _id: followerId, blockedBy: { $ne: new mongoose.Types.ObjectId(userId) } },
+          filter: { _id: new mongoose.Types.ObjectId(followerId), blockedBy: { $ne: new mongoose.Types.ObjectId(userId) } },
           update: {
             $push: {
               blockedBy: new mongoose.Types.ObjectId(userId)

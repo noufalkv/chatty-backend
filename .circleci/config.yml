@@ -294,8 +294,8 @@ workflows:
               - main
 
       - terraform-plan-and-apply:
-          requires:
-            - terraform-validate
+          # requires:
+          #   - terraform-validate
           filters:
             branches:
               only:

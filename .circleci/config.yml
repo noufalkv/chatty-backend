@@ -1,5 +1,5 @@
 orbs:
-  codecov: codecov/codecov@3.2.5
+  # codecov: codecov/codecov@3.2.5
   aws-cli: circleci/aws-cli@4.0.0
   slack: circleci/slack@4.12.5
 version: 2.1
@@ -153,7 +153,7 @@ jobs:
           command: |
             sleep 3
             npm run test
-      - codecov/upload
+      # - codecov/upload
       - *notify-on-fail
 
   terraform-validate:

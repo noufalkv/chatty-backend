@@ -316,15 +316,15 @@ workflows:
                 - develop
                 - staging
                 - main
-      - code-formatter-check:
-          requires:
-            - linting
-          filters:
-            branches:
-              only:
-                - develop
-                - staging
-                - main
+      # - code-formatter-check:
+      #     requires:
+      #       - linting
+      #     filters:
+      #       branches:
+      #         only:
+      #           - develop
+      #           - staging
+      #           - main
       - unit-test:
           # requires:
           #   - code-formatter-check

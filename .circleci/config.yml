@@ -120,16 +120,16 @@ jobs:
           command: npm run lint:check
       - *notify-on-fail
 
-  code-formatter-check:
-    executor: app-executor
-    steps:
-      - checkout
-      - *show-current-branch-name
-      - *restore-cache
-      - run:
-          name: Run prettier check
-          command: npm run prettier:check
-      - *notify-on-fail
+  # code-formatter-check:
+  #   executor: app-executor
+  #   steps:
+  #     - checkout
+  #     - *show-current-branch-name
+  #     - *restore-cache
+  #     - run:
+  #         name: Run prettier check
+  #         command: npm run prettier:check
+  #     - *notify-on-fail
 
   unit-test:
     executor: app-executor

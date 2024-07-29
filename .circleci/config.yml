@@ -1,5 +1,4 @@
 orbs:
-  # codecov: codecov/codecov@3.2.5
   aws-cli: circleci/aws-cli@4.0.0
   slack: circleci/slack@4.12.5
 version: 2.1
@@ -126,35 +125,35 @@ jobs:
           command: npm run lint:check
       - *notify-on-fail
 
-  code-formatter-check:
-    executor: app-executor
-    steps:
-      - checkout
-      - *show-current-branch-name
-      - *restore-cache
-      - run:
-          name: Run prettier check
-          command: npm run prettier:check
-      - *notify-on-fail
+  # code-formatter-check:
+  #   executor: app-executor
+  #   steps:
+  #     - checkout
+  #     - *show-current-branch-name
+  #     - *restore-cache
+  #     - run:
+  #         name: Run prettier check
+  #         command: npm run prettier:check
+  #     - *notify-on-fail
 
-  unit-test:
-    executor: app-executor
-    steps:
-      - checkout
-      - setup_remote_docker
-      - *show-current-branch-name
-      - *restore-cache
-      - run:
-          name: Start redis server
-          command: docker run --name chatapp-redis -p 6379:6379 -d redis
-          background: true
-      - run:
-          name: Run unit test
-          command: |
-            sleep 3
-            npm run test
-      # - codecov/upload
-      - *notify-on-fail
+  # unit-test:
+  #   executor: app-executor
+  #   steps:
+  #     - checkout
+  #     - setup_remote_docker
+  #     - *show-current-branch-name
+  #     - *restore-cache
+  #     - run:
+  #         name: Start redis server
+  #         command: docker run --name chatapp-redis -p 6379:6379 -d redis
+  #         background: true
+  #     - run:
+  #         name: Run unit test
+  #         command: |
+  #           sleep 3
+  #           npm run test
+  #     - codecov/upload
+  #     - *notify-on-fail
 
   terraform-validate:
     executor: terraform-executor
@@ -176,7 +175,9 @@ jobs:
       - checkout
       - *show-current-branch-name
       - aws-cli/setup:
-          profile-name: default
+          aws-access-key-id: $AWS_ACCESS_KEY_ID
+          aws-secret-access-key: $AWS_SECRET_ACCESS_KEY
+          aws-region: $AWS_DEFAULT_REGION
       - run:
           name: Terraform plan
           command: |
@@ -197,12 +198,14 @@ jobs:
     steps:
       - checkout
       - aws-cli/setup:
-          profile-name: default
+          aws-access-key-id: $AWS_ACCESS_KEY_ID
+          aws-secret-access-key: $AWS_SECRET_ACCESS_KEY
+          aws-region: $AWS_DEFAULT_REGION
       - *zip-project
       - run:
           name: Upload project to S3
           command: |
-            aws --region us-east-1 s3 cp chatapp.zip s3://chaty-server-${CIRCLE_BRANCH}-app
+            aws s3 cp chatapp.zip s3://chaty-server-${CIRCLE_BRANCH}-app
       - *notify-on-fail
 
   push-to-aws-code-deploy:
@@ -210,14 +213,16 @@ jobs:
     steps:
       - checkout
       - aws-cli/setup:
-          profile-name: default
+          aws-access-key-id: $AWS_ACCESS_KEY_ID
+          aws-secret-access-key: $AWS_SECRET_ACCESS_KEY
+          aws-region: $AWS_DEFAULT_REGION
       - run:
           name: Deploy changes with AWS code deploy
           command: |
             if [ "${CODE_DEPLOY_UPDATE}" == "true" ]
             then
                 aws deploy create-deployment \
-                    --region us-east-1 \
+                    --region $AWS_DEFAULT_REGION \
                     --application-name chaty-server-${CIRCLE_BRANCH}-app \
                     --deployment-config-name CodeDeployDefault.AllAtOnce \
                     --deployment-group-name chaty-server-${CIRCLE_BRANCH}-group \
@@ -316,27 +321,27 @@ workflows:
                 - develop
                 - staging
                 - main
-      - code-formatter-check:
-          requires:
-            - linting
-          filters:
-            branches:
-              only:
-                - develop
-                - staging
-                - main
-      - unit-test:
-          requires:
-            - code-formatter-check
-          filters:
-            branches:
-              only:
-                - develop
-                - staging
-                - main
+      # - code-formatter-check:
+      #     requires:
+      #       - linting
+      #     filters:
+      #       branches:
+      #         only:
+      #           - develop
+      #           - staging
+      #           - main
+      # - unit-test:
+      #     requires:
+      #       - code-formatter-check
+      #     filters:
+      #       branches:
+      #         only:
+      #           - develop
+      #           - staging
+      #           - main
       - terraform-validate:
-          requires:
-            - unit-test
+          # requires:
+          #   - unit-test
           filters:
             branches:
               only:

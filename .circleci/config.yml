@@ -10,7 +10,8 @@ executors:
       - image: cimg/node:18.17.1
       - image: cimg/redis:7.0.12
       - image: 'cibuilds/base:latest'
-      - image: circleci/python:3.8
+      - image: circleci/python:3.8-alpine
+
     working_directory: ~/repo
   terraform-executor:
     docker:
@@ -117,7 +118,8 @@ jobs:
       - run:
           name: Install glibc
           command: |
-            apk add --no-cache --force-overwrite glibc-bin glibc-i18n
+            apk update
+            apk add --no-cache glibc-bin glibc-i18n
       - *install-dependencies
       - *save-cache
 

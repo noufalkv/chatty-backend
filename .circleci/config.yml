@@ -1,18 +1,18 @@
 orbs:
-  #codecov: codecov/codecov@4.0.1
-  aws-cli: circleci/aws-cli@3.1.3
-  slack: circleci/slack@4.10.1
+  #codecov: codecov/codecov@3.2.5
+  aws-cli: circleci/aws-cli@4.0.0
+  slack: circleci/slack@4.12.5
 version: 2.1
 executors:
   app-executor:
     docker:
-      - image: cimg/node:16.17.0
+      - image: cimg/node:18.17.1
+      - image: cimg/redis:7.0.12
       - image: 'cibuilds/base:latest'
     working_directory: ~/repo
   terraform-executor:
     docker:
       - image: hashicorp/terraform:latest
-      - image: 'cibuilds/base:latest'
   slack-executor:
     docker:
       - image: 'cibuilds/base:latest'
@@ -37,6 +37,13 @@ aliases:
       paths:
         - node_modules
       key: app-{{ checksum "package.json" }}
+  - &zip-project
+    run:
+      name: Zip project
+      command: |
+          rm -rf node_modules
+          zip chatapp.zip -r .
+          echo "Zip successful"
   - &notify-on-fail
     slack/notify:
       event: fail
@@ -99,7 +106,7 @@ aliases:
         }
 
 jobs:
-  install-dependencies:
+  build:
     executor: app-executor
     steps:
       - checkout
@@ -107,7 +114,6 @@ jobs:
       - *restore-cache
       - *install-dependencies
       - *save-cache
-      - *notify-on-fail
 
   linting:
     executor: app-executor
@@ -131,17 +137,24 @@ jobs:
   #         command: npm run prettier:check
   #     - *notify-on-fail
 
-  unit-test:
-    executor: app-executor
-    steps:
-      - checkout
-      - *show-current-branch-name
-      - *restore-cache
-      - run:
-          name: Run unit test
-          command: npm run test
-      #- codecov/upload
-      - *notify-on-fail
+  # unit-test:
+  #   executor: app-executor
+  #   steps:
+  #     - checkout
+  #     - setup_remote_docker
+  #     - *show-current-branch-name
+  #     - *restore-cache
+  #     - run:
+  #         name: Start redis server
+  #         command: docker run --name chatapp-redis -p 6379:6379 -d redis
+  #         background: true
+  #     - run:
+  #         name: Run unit test
+  #         command: |
+  #           sleep 3
+  #           npm run test
+  #     - codecov/upload
+  #     - *notify-on-fail
 
   terraform-validate:
     executor: terraform-executor
@@ -149,19 +162,21 @@ jobs:
       - checkout
       - *show-current-branch-name
       - run:
-          name: Terraform validate & fmt
+          name: Terraform validate & format
           command: |
             cd deployment/
             terraform init -backend=false
             terraform validate
             terraform fmt
+      - *notify-on-fail
 
   terraform-plan-and-apply:
     executor: terraform-executor
     steps:
       - checkout
       - *show-current-branch-name
-      - run: mkdir -p temp_folder
+      - aws-cli/setup:
+          profile-name: default
       - run:
           name: Terraform plan
           command: |
@@ -175,57 +190,40 @@ jobs:
             cd deployment/
             terraform workspace select ${CIRCLE_BRANCH}
             terraform apply -auto-approve
-            terraform output cloudfront_distribution_id > ../temp_folder/cloudfront_distribution_id.txt
-      - persist_to_workspace:
-          root: ./
-          paths:
-            - temp_folder
       - *notify-on-fail
 
-  upload-build-to-s3:
-    executor: app-executor
+  upload-project-to-s3:
+    executor: aws-cli/default
     steps:
       - checkout
       - aws-cli/setup:
           profile-name: default
-      - *restore-cache
+      - *zip-project
       - run:
-          name: Upload build to S3
+          name: Upload project to S3
           command: |
-            rm -rf .env
-            if [ "${CIRCLE_BRANCH}" == "develop" ]
+            aws --region us-east-1 s3 cp chatapp.zip s3://chaty-server-${CIRCLE_BRANCH}-app
+      - *notify-on-fail
+
+  push-to-aws-code-deploy:
+    executor: aws-cli/default
+    steps:
+      - checkout
+      - aws-cli/setup:
+          profile-name: default
+      - run:
+          name: Deploy changes with AWS code deploy
+          command: |
+            if [ "${CODE_DEPLOY_UPDATE}" == "true" ]
             then
-              # Make sure to use your correct s3 bucket name
-              aws --region eu-central-1 s3 sync s3://<your-s3-bucket>/frontend/develop .
-            elif [ "${CIRCLE_BRANCH}" == "staging" ]
-            then
-              # Make sure to use your correct s3 bucket name
-              aws --region eu-central-1 s3 sync s3://<your-s3-bucket>/frontend/staging .
-            else
-              # Make sure to use your correct s3 bucket name
-              aws --region eu-central-1 s3 sync s3://<your-s3-bucket>/frontend/production .
+                aws deploy create-deployment \
+                    --region us-east-1 \
+                    --application-name chaty-server-${CIRCLE_BRANCH}-app \
+                    --deployment-config-name CodeDeployDefault.AllAtOnce \
+                    --deployment-group-name chaty-server-${CIRCLE_BRANCH}-group \
+                    --file-exists-behavior "OVERWRITE" \
+                    --s3-location bucket=chaty-server-${CIRCLE_BRANCH}-app,bundleType=zip,key=chatapp.zip
             fi
-            npm run build
-            echo "Build successful"
-            # For the bucket name here, use the variable prefix inside your variables.tf file
-            aws --region eu-central-1 s3 cp build s3://<variable-prefix>-${CIRCLE_BRANCH}-app --recursive
-      - *notify-on-fail
-
-  aws-cloudfront-distribution:
-    executor: app-executor
-    steps:
-      - checkout
-      - attach_workspace:
-          at: ./
-      - aws-cli/setup:
-          profile-name: default
-      - run:
-          name: Invalidate cloudfront distribution
-          command: |
-            CLOUDFRONT_DISTRIBUTION_ID=$(cat temp_folder/cloudfront_distribution_id.txt | sed 's/\"//g')
-            echo $CLOUDFRONT_DISTRIBUTION_ID
-            aws configure set preview.cloudfront true
-            aws cloudfront create-invalidation --distribution-id ${CLOUDFRONT_DISTRIBUTION_ID} --paths /\*
       - *notify-on-fail
 
   notify-via-slack:
@@ -304,43 +302,38 @@ jobs:
             terraform init
             terraform workspace select ${CIRCLE_BRANCH} || terraform workspace new ${CIRCLE_BRANCH}
             terraform destroy -auto-approve
-      - slack/notify:
-          channel: 'chatty-app-builds'
-          event: always
-          template: basic_on_hold_1
-
 
 workflows:
   build_and_deploy:
     jobs:
-      - install-dependencies
+      - build
       - linting:
           requires:
-            - install-dependencies
+            - build
           filters:
             branches:
               only:
                 - develop
                 - staging
                 - main
-      # - code-formatter-check:
-      #     requires:
-      #       - linting
-      #     filters:
-      #       branches:
-      #         only:
-      #           - develop
-      #           - staging
-      #           - main
-      # - unit-test:
-      #     requires:
-      #       - code-formatter-check
-      #     filters:
-      #       branches:
-      #         only:
-      #           - develop
-      #           - staging
-      #           - main
+      - code-formatter-check:
+          requires:
+            - linting
+          filters:
+            branches:
+              only:
+                - develop
+                - staging
+                - main
+      - unit-test:
+          # requires:
+          #   - code-formatter-check
+          filters:
+            branches:
+              only:
+                - develop
+                - staging
+                - main
       - terraform-validate:
           # requires:
           #   - unit-test
@@ -359,7 +352,7 @@ workflows:
                 - develop
                 - staging
                 - main
-      - upload-build-to-s3:
+      - upload-project-to-s3:
           requires:
             - terraform-plan-and-apply
           filters:
@@ -368,9 +361,9 @@ workflows:
                 - develop
                 - staging
                 - main
-      - aws-cloudfront-distribution:
+      - push-to-aws-code-deploy:
           requires:
-            - upload-build-to-s3
+            - upload-project-to-s3
           filters:
             branches:
               only:
@@ -379,7 +372,7 @@ workflows:
                 - main
       - notify-via-slack:
           requires:
-            - aws-cloudfront-distribution
+            - push-to-aws-code-deploy
           filters:
             branches:
               only:

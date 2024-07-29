@@ -326,8 +326,8 @@ workflows:
       #           - staging
       #           - main
       # - unit-test:
-      #       requires:
-      #         - code-formatter-check
+          # requires:
+          #   - code-formatter-check
         filters:
             branches:
               only:

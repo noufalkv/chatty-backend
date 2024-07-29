@@ -1,17 +1,15 @@
 version: 2.1
 
 orbs:
-  aws-cli: circleci/aws-cli@3.1.3  # Update this to the latest version available
+  aws-cli: circleci/aws-cli@3.1.3  # Update to the latest version
   slack: circleci/slack@4.12.5
 
 executors:
   app-executor:
     docker:
-      - image: cimg/node:18.17.1
+      - image: python:3.8
       - image: cimg/redis:7.0.12
       - image: 'cibuilds/base:latest'
-      - image: circleci/python:3.8-alpine
-
     working_directory: ~/repo
   terraform-executor:
     docker:
@@ -118,8 +116,8 @@ jobs:
       - run:
           name: Install glibc
           command: |
-            apk update
-            apk add --no-cache glibc-bin glibc-i18n
+            apt-get update
+            apt-get install -y libc-bin libc6
       - *install-dependencies
       - *save-cache
 

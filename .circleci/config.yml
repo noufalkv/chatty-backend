@@ -1,5 +1,5 @@
 orbs:
-  #codecov: codecov/codecov@3.2.5
+  codecov: codecov/codecov@3.2.5
   aws-cli: circleci/aws-cli@4.0.0
   slack: circleci/slack@4.12.5
 version: 2.1
@@ -8,14 +8,14 @@ executors:
     docker:
       - image: cimg/node:18.17.1
       - image: cimg/redis:7.0.12
-      - image: "cibuilds/base:latest"
+      - image: 'cibuilds/base:latest'
     working_directory: ~/repo
   terraform-executor:
     docker:
       - image: hashicorp/terraform:latest
   slack-executor:
     docker:
-      - image: "cibuilds/base:latest"
+      - image: 'cibuilds/base:latest'
     resource_class: small
 
 aliases:
@@ -41,14 +41,14 @@ aliases:
     run:
       name: Zip project
       command: |
-        rm -rf node_modules
-        zip chatapp.zip -r .
-        echo "Zip successful"
+          rm -rf node_modules
+          zip chatapp.zip -r .
+          echo "Zip successful"
   - &notify-on-fail
     slack/notify:
       event: fail
-      channel: "chatty-app-builds"
-      template: ""
+      channel: 'chatty-app-builds'
+      template: ''
       custom: |
         {
           "blocks": [
@@ -126,6 +126,36 @@ jobs:
           command: npm run lint:check
       - *notify-on-fail
 
+  code-formatter-check:
+    executor: app-executor
+    steps:
+      - checkout
+      - *show-current-branch-name
+      - *restore-cache
+      - run:
+          name: Run prettier check
+          command: npm run prettier:check
+      - *notify-on-fail
+
+  unit-test:
+    executor: app-executor
+    steps:
+      - checkout
+      - setup_remote_docker
+      - *show-current-branch-name
+      - *restore-cache
+      - run:
+          name: Start redis server
+          command: docker run --name chatapp-redis -p 6379:6379 -d redis
+          background: true
+      - run:
+          name: Run unit test
+          command: |
+            sleep 3
+            npm run test
+      - codecov/upload
+      - *notify-on-fail
+
   terraform-validate:
     executor: terraform-executor
     steps:
@@ -201,9 +231,9 @@ jobs:
     steps:
       - run: echo "Slack notification"
       - slack/notify:
-          event: "always"
-          channel: "chatty-app-builds"
-          template: ""
+          event: 'always'
+          channel: 'chatty-app-builds'
+          template: ''
           custom: |
             {
               "blocks": [
@@ -286,16 +316,36 @@ workflows:
                 - develop
                 - staging
                 - main
-        filters:
-          branches:
-            only:
-              - develop
-              - staging
-              - main
-
+      - code-formatter-check:
+          requires:
+            - linting
+          filters:
+            branches:
+              only:
+                - develop
+                - staging
+                - main
+      - unit-test:
+          requires:
+            - code-formatter-check
+          filters:
+            branches:
+              only:
+                - develop
+                - staging
+                - main
+      - terraform-validate:
+          requires:
+            - unit-test
+          filters:
+            branches:
+              only:
+                - develop
+                - staging
+                - main
       - terraform-plan-and-apply:
-          # requires:
-          #   - terraform-validate
+          requires:
+            - terraform-validate
           filters:
             branches:
               only:

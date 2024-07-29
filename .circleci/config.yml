@@ -1,14 +1,16 @@
+version: 2.1
+
 orbs:
   aws-cli: circleci/aws-cli@4.3.0
   slack: circleci/slack@4.12.5
-version: 2.1
+
 executors:
   app-executor:
     docker:
       - image: cimg/node:18.17.1
       - image: cimg/redis:7.0.12
       - image: 'cibuilds/base:latest'
-      - image: circleci/python:3.8  # Use the Docker image of your choice
+      - image: circleci/python:3.8
     working_directory: ~/repo
   terraform-executor:
     docker:
@@ -112,6 +114,10 @@ jobs:
       - checkout
       - *show-current-branch-name
       - *restore-cache
+      - run:
+          name: Install glibc
+          command: |
+            apk add --no-cache --force-overwrite glibc-bin glibc-i18n
       - *install-dependencies
       - *save-cache
 
@@ -125,36 +131,6 @@ jobs:
           name: Run linting
           command: npm run lint:check
       - *notify-on-fail
-
-  # code-formatter-check:
-  #   executor: app-executor
-  #   steps:
-  #     - checkout
-  #     - *show-current-branch-name
-  #     - *restore-cache
-  #     - run:
-  #         name: Run prettier check
-  #         command: npm run prettier:check
-  #     - *notify-on-fail
-
-  # unit-test:
-  #   executor: app-executor
-  #   steps:
-  #     - checkout
-  #     - setup_remote_docker
-  #     - *show-current-branch-name
-  #     - *restore-cache
-  #     - run:
-  #         name: Start redis server
-  #         command: docker run --name chatapp-redis -p 6379:6379 -d redis
-  #         background: true
-  #     - run:
-  #         name: Run unit test
-  #         command: |
-  #           sleep 3
-  #           npm run test
-  #     - codecov/upload
-  #     - *notify-on-fail
 
   terraform-validate:
     executor: terraform-executor
@@ -316,27 +292,7 @@ workflows:
                 - develop
                 - staging
                 - main
-      # - code-formatter-check:
-      #     requires:
-      #       - linting
-      #     filters:
-      #       branches:
-      #         only:
-      #           - develop
-      #           - staging
-      #           - main
-      # - unit-test:
-      #     requires:
-      #       - code-formatter-check
-      #     filters:
-      #       branches:
-      #         only:
-      #           - develop
-      #           - staging
-      #           - main
       - terraform-validate:
-          # requires:
-          #   - unit-test
           filters:
             branches:
               only:

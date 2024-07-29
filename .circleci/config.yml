@@ -1,5 +1,5 @@
 orbs:
-  aws-cli: circleci/aws-cli@3.1.3
+  aws-cli: circleci/aws-cli@4.3.0
   slack: circleci/slack@4.12.5
 version: 2.1
 executors:
@@ -8,6 +8,7 @@ executors:
       - image: cimg/node:18.17.1
       - image: cimg/redis:7.0.12
       - image: 'cibuilds/base:latest'
+      - image: circleci/python:3.8  # Use the Docker image of your choice
     working_directory: ~/repo
   terraform-executor:
     docker:

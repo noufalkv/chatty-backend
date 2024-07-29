@@ -151,7 +151,7 @@ jobs:
       - run:
           name: Terraform validate & fmt
           command: |
-            cd infrastructure/
+            cd deployment/
             terraform init -backend=false
             terraform validate
             terraform fmt
@@ -165,14 +165,14 @@ jobs:
       - run:
           name: Terraform plan
           command: |
-            cd infrastructure/
+            cd deployment/
             terraform init
             terraform workspace select ${CIRCLE_BRANCH} || terraform workspace new ${CIRCLE_BRANCH}
             terraform plan
       - run:
           name: Terraform apply
           command: |
-            cd infrastructure/
+            cd deployment/
             terraform workspace select ${CIRCLE_BRANCH}
             terraform apply -auto-approve
             terraform output cloudfront_distribution_id > ../temp_folder/cloudfront_distribution_id.txt
@@ -300,7 +300,7 @@ jobs:
       - run:
           name: Terraform destroy
           command: |
-            cd infrastructure/
+            cd deployment/
             terraform init
             terraform workspace select ${CIRCLE_BRANCH} || terraform workspace new ${CIRCLE_BRANCH}
             terraform destroy -auto-approve

@@ -175,9 +175,7 @@ jobs:
       - checkout
       - *show-current-branch-name
       - aws-cli/setup:
-          aws-access-key-id: $AWS_ACCESS_KEY_ID
-          aws-secret-access-key: $AWS_SECRET_ACCESS_KEY
-          aws-region: $AWS_DEFAULT_REGION
+          profile-name: default
       - run:
           name: Terraform plan
           command: |
@@ -198,9 +196,7 @@ jobs:
     steps:
       - checkout
       - aws-cli/setup:
-          aws-access-key-id: $AWS_ACCESS_KEY_ID
-          aws-secret-access-key: $AWS_SECRET_ACCESS_KEY
-          aws-region: $AWS_DEFAULT_REGION
+          profile-name: default
       - *zip-project
       - run:
           name: Upload project to S3
@@ -213,9 +209,7 @@ jobs:
     steps:
       - checkout
       - aws-cli/setup:
-          aws-access-key-id: $AWS_ACCESS_KEY_ID
-          aws-secret-access-key: $AWS_SECRET_ACCESS_KEY
-          aws-region: $AWS_DEFAULT_REGION
+          profile-name: default
       - run:
           name: Deploy changes with AWS code deploy
           command: |
